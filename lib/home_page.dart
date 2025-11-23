@@ -8,8 +8,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -151,7 +149,6 @@ class _HomePageState extends State<HomePage> {
 
                     const SizedBox(height: 16),
 
-                    // Result Menu
                     Align(
                       alignment: Alignment.centerLeft,
                       child: _buildMenuCard(
@@ -233,61 +230,13 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-
-      // ====== BOTTOM NAVIGATION BAR ======
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: const Color(0xFF5B06A9),
-          unselectedItemColor: Colors.grey,
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined, size: 28),
-              activeIcon: Icon(Icons.home, size: 28),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.work_outline, size: 28),
-              label: 'Jobs',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.search, size: 28),
-              label: 'Search',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month_outlined, size: 28),
-              label: 'Schedule',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.description_outlined, size: 28),
-              label: 'Documents',
-            ),
-          ],
-        ),
-      ),
     );
   }
 
-  // Menu Card Widget
+  // ------------------------
+  // REUSABLE WIDGETS
+  // ------------------------
+
   Widget _buildMenuCard(IconData icon, String label, Color color) {
     return SizedBox(
       width: 105,
@@ -317,7 +266,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Job Card Widget
   Widget _buildJobCard(String title, String description, Color color, IconData icon) {
     return Container(
       width: 280,

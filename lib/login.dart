@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project1/main.dart';
 import 'home_page.dart'; // ganti dengan halaman tujuanmu
 
 class LoginPage extends StatefulWidget {
@@ -162,12 +163,13 @@ class _LoginPageState extends State<LoginPage> {
                       height: 52,
                       child: ElevatedButton(
                         onPressed: () {
-                          Navigator.push(
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const HomePage(),
+                              builder: (context) => const MainLayout(),
                             ),
                           );
+
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2C2C2C),
