@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'job_page.dart';
 import 'home_page.dart';
 
 void main() {
@@ -35,7 +36,7 @@ class _MainLayoutState extends State<MainLayout> {
   // daftar halaman yang ingin ditampilkan
   final List<Widget> _pages = const [
     HomePage(),
-    Center(child: Text("Jobs")),     // nanti bisa ganti page lain
+    JobPage(),     // nanti bisa ganti page lain
     Center(child: Text("Search")),
     Center(child: Text("Schedule")),
     Center(child: Text("Documents")),
