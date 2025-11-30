@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project1/login.dart';
 import 'document_page.dart';
 import 'interview_page.dart';
 import 'job_page.dart';
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MainLayout(), // ← gunakan layout utama
+      home: const LoginPage(), // ← gunakan layout utama
     );
   }
 }
@@ -39,7 +40,6 @@ class _MainLayoutState extends State<MainLayout> {
   final List<Widget> _pages = const [
     HomePage(),
     JobPage(),     // nanti bisa ganti page lain
-    Center(child: Text("Search")),
     InterviewPage(),
     DocumentPage(),
   ];
@@ -69,10 +69,6 @@ class _MainLayoutState extends State<MainLayout> {
           BottomNavigationBarItem(
             icon: Icon(Icons.work_outline, size: 28),
             label: 'Jobs',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search, size: 28),
-            label: 'Search',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_month_outlined, size: 28),
