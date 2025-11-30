@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'document_page.dart';
 import 'interview_page.dart';
 import 'job_page.dart';
 import 'home_page.dart';
@@ -40,7 +41,7 @@ class _MainLayoutState extends State<MainLayout> {
     JobPage(),     // nanti bisa ganti page lain
     Center(child: Text("Search")),
     InterviewPage(),
-    Center(child: Text("Documents")),
+    DocumentPage(),
   ];
 
   @override
