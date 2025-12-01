@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project1/main.dart';
 import 'home_page.dart'; // ganti dengan halaman tujuanmu
+import 'services/auth_services.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -162,15 +163,33 @@ class _LoginPageState extends State<LoginPage> {
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MainLayout(),
-                            ),
-                          );
+                        onPressed: () async {
+                          final email = emailController.text.trim();
+                          final password = passwordController.text.trim();
 
+                          if (email.isEmpty || password.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Email dan password wajib diisi"))
+                            );
+                            return;
+                          }
+
+                          // panggil service
+                          final result = await AuthServices().login(email, password);
+
+                          if (result["success"]) {
+                            // jika login berhasil pindah ke home
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const MainLayout()),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(result["message"]))
+                            );
+                          }
                         },
+
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2C2C2C),
                           elevation: 0,
