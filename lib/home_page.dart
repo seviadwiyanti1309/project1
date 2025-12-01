@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'services/auth_services.dart'; // Sesuaikan dengan path Anda
+import 'login.dart'; // Import halaman login Anda
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -8,6 +10,69 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final AuthServices _authServices = AuthServices();
+  bool _isLoggingOut = false;
+
+  // Fungsi untuk handle logout
+  Future<void> _handleLogout() async {
+    setState(() {
+      _isLoggingOut = true;
+    });
+
+    try {
+      final result = await _authServices.logout();
+      
+      if (!mounted) return;
+      
+      if (result["success"]) {
+        // Tampilkan pesan sukses
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["message"] ?? "Logout berhasil"),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+
+        // Tunggu sebentar untuk menampilkan snackbar
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (!mounted) return;
+
+        // Navigasi ke halaman login dan hapus semua route sebelumnya
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+          (route) => false,
+        );
+      } else {
+        // Tampilkan pesan error
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result["message"] ?? "Logout gagal"),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error: ${e.toString()}"),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoggingOut = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,19 +118,94 @@ class _HomePageState extends State<HomePage> {
 
                     const SizedBox(height: 24),
 
-                    // Location
+                    // Location with Exit Button
                     Row(
-                      children: const [
-                        Text(
-                          "Location",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: const [
+                            Text(
+                              "Location",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(width: 6),
+                            Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 20),
+                          ],
                         ),
-                        SizedBox(width: 6),
-                        Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 20),
+                        IconButton(
+                          onPressed: _isLoggingOut
+                              ? null
+                              : () {
+                                  // Dialog konfirmasi logout
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (context) => AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(15),
+                                      ),
+                                      title: Row(
+                                        children: const [
+                                          Icon(Icons.logout, color: Color(0xFF5B06A9)),
+                                          SizedBox(width: 10),
+                                          Text("Konfirmasi Logout"),
+                                        ],
+                                      ),
+                                      content: const Text(
+                                        "Apakah Anda yakin ingin keluar dari aplikasi?",
+                                        style: TextStyle(fontSize: 15),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(context),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: Colors.grey,
+                                          ),
+                                          child: const Text(
+                                            "Batal",
+                                            style: TextStyle(fontWeight: FontWeight.w600),
+                                          ),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                            _handleLogout();
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.red,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            "Keluar",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                          icon: _isLoggingOut
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.logout, color: Colors.white, size: 20),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -323,21 +463,6 @@ class _HomePageState extends State<HomePage> {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              "Details",
-              style: TextStyle(
-                color: color,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
         ],
       ),
     );
