@@ -180,72 +180,158 @@ class _JobPageState extends State<JobPage> {
     );
   }
 
-  void _showJobDetails(dynamic job) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+
+void _showJobDetails(dynamic job) {
+  showDialog(
+    context: context,
+    builder: (context) => Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
       ),
-      builder: (context) => Container(
+      child: Container(
         padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              job['job_name'],
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+            // Icon atau Image (opsional)
+            Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: const Color(0xFF7D4CC2).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
               ),
-            ),
-
-            const SizedBox(height: 10),
-            Text(
-              job['category'],
-              style: TextStyle(color: Colors.grey.shade600),
+              child: job['image'].isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.network(
+                        "http://localhost:4000/uploads/${job['image'][0]}",
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) {
+                          return const Icon(
+                            Icons.work_outline,
+                            size: 40,
+                            color: Color(0xFF7D4CC2),
+                          );
+                        },
+                      ),
+                    )
+                  : const Icon(
+                      Icons.work_outline,
+                      size: 40,
+                      color: Color(0xFF7D4CC2),
+                    ),
             ),
 
             const SizedBox(height: 20),
-            const Text(
-              "Description",
-              style: TextStyle(
-                fontSize: 16,
+
+            // Job Title
+            Text(
+              job['job_name'],
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
+                color: Colors.black87,
               ),
             ),
 
             const SizedBox(height: 8),
-            Text(
-              job['description'],
-              style: const TextStyle(fontSize: 14, height: 1.5),
+
+            // Category Badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF7D4CC2).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                job['category'],
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFF7D4CC2),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Divider
+            Container(
+              height: 1,
+              color: Colors.grey.shade200,
+            ),
+
+            const SizedBox(height: 20),
+
+            // Description Label
+            const Text(
+              "Description",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Description Text
+            Container(
+              constraints: const BoxConstraints(maxHeight: 200),
+              child: SingleChildScrollView(
+                child: Text(
+                  job['description'],
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.6,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+              ),
             ),
 
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text("Applied for ${job['job_name']}!"),
+
+            // Close Button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF7D4CC2),
-                ));
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7D4CC2),
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  "Close",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-              child: const Text(
-                "Apply Now",
-                style: TextStyle(fontSize: 16, color: Colors.white),
-              ),
-            )
+            ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }
-
+}
 class JobCard extends StatelessWidget {
   final String title;
   final String description;
