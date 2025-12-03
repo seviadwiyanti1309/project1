@@ -181,7 +181,7 @@ class _CreateJobPageState extends State<CreateJobPage> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: const Color(0xFF7D4CC2),
-        title: const Text('Buat Job Baru', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Buat Job Baru', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -316,8 +316,8 @@ class _CreateJobPageState extends State<CreateJobPage> {
         Expanded(
           child: ElevatedButton.icon(
             onPressed: _pickImageFromGallery,
-            icon: const Icon(Icons.photo_library),
-            label: const Text('Galeri'),
+            icon: const Icon(Icons.photo_library, color: Colors.white),
+            label: const Text('Galeri', style: TextStyle(color: Colors.white)),
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7D4CC2)),
           ),
         ),
@@ -325,8 +325,8 @@ class _CreateJobPageState extends State<CreateJobPage> {
         Expanded(
           child: ElevatedButton.icon(
             onPressed: _pickImageFromCamera,
-            icon: const Icon(Icons.camera_alt),
-            label: const Text('Kamera'),
+            icon: const Icon(Icons.camera_alt,color: Colors.white),
+            label: const Text('Kamera', style: TextStyle(color: Colors.white)),
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7D4CC2)),
           ),
         ),
@@ -374,7 +374,7 @@ class _CreateJobPageState extends State<CreateJobPage> {
         ),
         child: _isLoading
             ? const CircularProgressIndicator(color: Colors.white)
-            : const Text('Buat Job', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+            : const Text('Buat Job', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
       ),
     );
   }
