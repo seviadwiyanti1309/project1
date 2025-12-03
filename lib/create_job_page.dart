@@ -192,8 +192,7 @@ class _CreateJobPageState extends State<CreateJobPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // TITLE CARD
-              _buildHeaderCard(),
-              const SizedBox(height: 20),
+              const SizedBox(height: 14),
 
               // Input Fields
               _buildLabel('Nama Job'),
@@ -234,36 +233,7 @@ class _CreateJobPageState extends State<CreateJobPage> {
 
   // ---------------- UI Components ---------------- //
 
-  Widget _buildHeaderCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.white, Colors.purple.shade50],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Row(
-        children: const [
-          Icon(Icons.work_outline, size: 35, color: Color(0xFF7D4CC2)),
-          SizedBox(width: 15),
-          Text(
-            'Informasi Job',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildLabel(String text) {
     return Text(

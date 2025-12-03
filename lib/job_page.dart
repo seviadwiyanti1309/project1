@@ -115,11 +115,11 @@ class _JobPageState extends State<JobPage> {
             _refreshData();
           }
         },
-        backgroundColor: const Color(0xFF7D4CC2),
-        icon: const Icon(Icons.add),
+        backgroundColor: const Color.fromARGB(255, 193, 149, 254),
+        icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
           'Create Job',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
     );
