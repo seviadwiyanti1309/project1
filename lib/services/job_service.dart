@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:project1/models/job_model.dart';
 
 
 class JobService {
   final String baseUrl = "http://localhost:4000/api/jobs";
 
-  Future<List<dynamic>> getJobs() async {
+
+  //get
+  Future<List<JobCategory>> getJobs() async {
     final url = Uri.parse(baseUrl);
     final response = await http.get(url);
     
@@ -13,6 +16,48 @@ class JobService {
       return jsonDecode(response.body);
     } else {
       throw Exception("Gagal mengambil data job");
+    }
+  }
+
+  //post 
+  Future<JobCategory> createJob(JobCategory job) async {
+    final url = Uri.parse(baseUrl);
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(job.toJson()),
+    );
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return JobCategory.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception("Gagal membuat job");
+    }
+  }
+
+
+  //PUT
+  Future<JobCategory> updateJob(String id, JobCategory job) async {
+    final url = Uri.parse("$baseUrl/$id");
+    final response = await http.put(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(job.toJson()),
+    );
+    if (response.statusCode == 200) {
+      return JobCategory.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception("Gagal memperbarui job");
+    }
+  }
+
+  //Delete
+  Future<bool> deleteJob(String id) async {
+    final url = Uri.parse("$baseUrl/$id");
+    final response = await http.delete(url);
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      throw Exception("Gagal menghapus job");
     }
   }
 }

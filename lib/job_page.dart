@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project1/models/job_model.dart';
 import 'services/job_service.dart';
 
 class JobPage extends StatefulWidget {
@@ -11,7 +12,7 @@ class JobPage extends StatefulWidget {
 class _JobPageState extends State<JobPage> {
   String searchQuery = '';
   String selectedCategory = 'All';
-  late Future<List<dynamic>> jobFuture;
+  late Future<List<JobCategory>> jobFuture;
 
   @override
   void initState() {
@@ -20,10 +21,10 @@ class _JobPageState extends State<JobPage> {
   }
 
   // Filter data dari API
-  List<dynamic> filterJobs(List<dynamic> jobs) {
+  List<JobCategory> filterJobs(List<JobCategory> jobs) {
     return jobs.where((job) {
-      final title = job['job_name']?.toLowerCase() ?? '';
-      final category = job['category'] ?? '';
+      final title = job.jobName.toLowerCase();
+      final category = job.category;
       
       final matchesSearch = title.contains(searchQuery.toLowerCase());
       final matchesCategory =
@@ -42,7 +43,7 @@ class _JobPageState extends State<JobPage> {
           children: [
             _buildHeader(),
             Expanded(
-              child: FutureBuilder<List<dynamic>>(
+              child: FutureBuilder<List<JobCategory>>(
                 future: jobFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -74,12 +75,12 @@ class _JobPageState extends State<JobPage> {
                     itemBuilder: (context, index) {
                       final job = filtered[index];
                       return JobCard(
-                        title: job['job_name'],
-                        description: job['description'],
-                        imagePath: job['image'].isNotEmpty
-                            ? job['image'][0]
+                        title: job.jobName,
+                        description: job.description,
+                        imagePath: job.image.isNotEmpty
+                            ? job.image[0]
                             : '', // jika tidak ada gambar
-                        category: job['category'],
+                        category: job.category,
                         onTap: () => _showJobDetails(job),
                       );
                     },
@@ -206,11 +207,11 @@ void _showJobDetails(dynamic job) {
                 color: const Color(0xFF7D4CC2).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: job['image'].isNotEmpty
+              child: job.image.isNotEmpty
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: Image.network(
-                        "http://localhost:4000/uploads/${job['image'][0]}",
+                        "http://localhost:4000/uploads/${job.image[0]}",
                         fit: BoxFit.cover,
                         errorBuilder: (_, __, ___) {
                           return const Icon(
@@ -232,7 +233,7 @@ void _showJobDetails(dynamic job) {
 
             // Job Title
             Text(
-              job['job_name'],
+              job.jobName,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 22,
@@ -251,7 +252,7 @@ void _showJobDetails(dynamic job) {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                job['category'],
+                job.category,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Color(0xFF7D4CC2),
@@ -289,7 +290,7 @@ void _showJobDetails(dynamic job) {
               constraints: const BoxConstraints(maxHeight: 200),
               child: SingleChildScrollView(
                 child: Text(
-                  job['description'],
+                  job.description,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
