@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project1/models/job_model.dart';
-import 'services/job_service.dart';
+import 'package:project1/services/job_service.dart';
+import 'package:project1/create_job_page.dart'; // Import halaman create
 
 class JobPage extends StatefulWidget {
   const JobPage({super.key});
@@ -18,6 +19,13 @@ class _JobPageState extends State<JobPage> {
   void initState() {
     super.initState();
     jobFuture = JobService().getJobs();
+  }
+
+  // Refresh data setelah create
+  void _refreshData() {
+    setState(() {
+      jobFuture = JobService().getJobs();
+    });
   }
 
   // Filter data dari API
@@ -89,6 +97,29 @@ class _JobPageState extends State<JobPage> {
               ),
             ),
           ],
+        ),
+      ),
+      // FLOATING ACTION BUTTON untuk Create Job
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          // Navigate ke CreateJobPage dan tunggu hasilnya
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CreateJobPage(),
+            ),
+          );
+          
+          // Jika berhasil create (result == true), refresh data
+          if (result == true) {
+            _refreshData();
+          }
+        },
+        backgroundColor: const Color(0xFF7D4CC2),
+        icon: const Icon(Icons.add),
+        label: const Text(
+          'Create Job',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -181,158 +212,158 @@ class _JobPageState extends State<JobPage> {
     );
   }
 
-
-void _showJobDetails(dynamic job) {
-  showDialog(
-    context: context,
-    builder: (context) => Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
+  void _showJobDetails(dynamic job) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Icon atau Image (opsional)
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: const Color(0xFF7D4CC2).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: job.image.isNotEmpty
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: Image.network(
-                        "http://localhost:4000/uploads/${job.image[0]}",
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) {
-                          return const Icon(
-                            Icons.work_outline,
-                            size: 40,
-                            color: Color(0xFF7D4CC2),
-                          );
-                        },
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Icon atau Image (opsional)
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF7D4CC2).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: job.image.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.network(
+                          "http://10.0.2.2:4000/uploads/${job.image[0]}",
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) {
+                            return const Icon(
+                              Icons.work_outline,
+                              size: 40,
+                              color: Color(0xFF7D4CC2),
+                            );
+                          },
+                        ),
+                      )
+                    : const Icon(
+                        Icons.work_outline,
+                        size: 40,
+                        color: Color(0xFF7D4CC2),
                       ),
-                    )
-                  : const Icon(
-                      Icons.work_outline,
-                      size: 40,
-                      color: Color(0xFF7D4CC2),
-                    ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Job Title
-            Text(
-              job.jobName,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
               ),
-            ),
 
-            const SizedBox(height: 8),
+              const SizedBox(height: 20),
 
-            // Category Badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF7D4CC2).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                job.category,
+              // Job Title
+              Text(
+                job.jobName,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: Color(0xFF7D4CC2),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 8),
 
-            // Divider
-            Container(
-              height: 1,
-              color: Colors.grey.shade200,
-            ),
-
-            const SizedBox(height: 20),
-
-            // Description Label
-            const Text(
-              "Description",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Description Text
-            Container(
-              constraints: const BoxConstraints(maxHeight: 200),
-              child: SingleChildScrollView(
+              // Category Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF7D4CC2).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
                 child: Text(
-                  job.description,
+                  job.category,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    height: 1.6,
-                    color: Colors.grey.shade700,
+                  style: const TextStyle(
+                    color: Color(0xFF7D4CC2),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
                   ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-            // Close Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7D4CC2),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
+              // Divider
+              Container(
+                height: 1,
+                color: Colors.grey.shade200,
+              ),
+
+              const SizedBox(height: 20),
+
+              // Description Label
+              const Text(
+                "Description",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
-                child: const Text(
-                  "Close",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+              ),
+
+              const SizedBox(height: 12),
+
+              // Description Text
+              Container(
+                constraints: const BoxConstraints(maxHeight: 200),
+                child: SingleChildScrollView(
+                  child: Text(
+                    job.description,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.6,
+                      color: Colors.grey.shade700,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 24),
+
+              // Close Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7D4CC2),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    "Close",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
-}
+
 class JobCard extends StatelessWidget {
   final String title;
   final String description;
@@ -353,7 +384,7 @@ class JobCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final String imgUrl = imagePath.isEmpty
         ? "" // kalau tidak ada gambar
-        : "http://localhost:4000/uploads/$imagePath"; 
+        : "http://10.0.2.2:4000/uploads/$imagePath"; 
 
     return GestureDetector(
       onTap: onTap,

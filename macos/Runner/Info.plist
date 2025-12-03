@@ -28,5 +28,13 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>App membutuhkan akses ke galeri untuk memilih gambar.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>App membutuhkan akses kamera untuk mengambil foto.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>App membutuhkan akses mikrofon untuk merekam video.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Aplikasi membutuhkan izin untuk menyimpan gambar.</string>
 </dict>
 </plist>
