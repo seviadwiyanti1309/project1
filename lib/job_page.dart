@@ -235,7 +235,7 @@ class _JobPageState extends State<JobPage> {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(16),
                         child: Image.network(
-                          "http://10.0.2.2:4000/uploads/${job.image[0]}",
+                          "http://10.0.2.2:4000/${job.image[0]}",
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) {
                             return const Icon(
@@ -377,7 +377,7 @@ class JobCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final String imgUrl = imagePath.isEmpty
         ? "" 
-        : "http://10.0.2.2:4000/uploads/$imagePath"; 
+        : "http://10.0.2.2:4000/$imagePath"; 
 
     return GestureDetector(
       onTap: onTap,
