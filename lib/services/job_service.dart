@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:project1/models/job_model.dart';
+import 'dart:io';
 
 class JobService {
   final String baseUrl = "http://10.0.2.2:4000/api/jobs";
@@ -19,18 +20,32 @@ class JobService {
   }
   
   //post 
-  Future<JobCategory> createJob(JobCategory job) async {
+  Future<JobCategory> createJob(JobCategory job, List<File> imageFiles) async {
     final url = Uri.parse(baseUrl);
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(job.toJson()),
-    );
+    
+    var request = http.MultipartRequest('POST', url);
+    
+    request.fields['job_name'] = job.jobName;
+    request.fields['description'] = job.description;
+    request.fields['category'] = job.category;
+    request.fields['applicant'] = job.applicant.toString();
+    
+    if (imageFiles.isNotEmpty) {
+      var file = await http.MultipartFile.fromPath(
+        'image', 
+        imageFiles.first.path,
+      );
+      request.files.add(file);
+    }
+    
+    var streamedResponse = await request.send();
+    var response = await http.Response.fromStream(streamedResponse);
     
     if (response.statusCode == 201 || response.statusCode == 200) {
-      return JobCategory.fromJson(jsonDecode(response.body));
+      final data = jsonDecode(response.body);
+      return JobCategory.fromJson(data["jobCategory"]);
     } else {
-      throw Exception("Gagal membuat job");
+      throw Exception("Gagal membuat job: ${response.body}");
     }
   }
   

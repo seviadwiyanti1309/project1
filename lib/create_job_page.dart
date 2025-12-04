@@ -155,12 +155,12 @@ class _CreateJobPageState extends State<CreateJobPage> {
           description: _descriptionController.text,
           category: _selectedCategory,
           applicant: int.parse(_applicantController.text),
-          image: imageNames,
+          image: [],
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
 
-        await _jobService.createJob(job);
+        await _jobService.createJob(job, _imageFiles);
 
         if (mounted) {
           _showSnackBar('Job berhasil dibuat! 🎉', Colors.green);

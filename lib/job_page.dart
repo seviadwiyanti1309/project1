@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project1/models/job_model.dart';
 import 'package:project1/services/job_service.dart';
-import 'package:project1/create_job_page.dart'; // Import halaman create
+import 'package:project1/create_job_page.dart';
 
 class JobPage extends StatefulWidget {
   const JobPage({super.key});
@@ -21,14 +21,12 @@ class _JobPageState extends State<JobPage> {
     jobFuture = JobService().getJobs();
   }
 
-  // Refresh data setelah create
   void _refreshData() {
     setState(() {
       jobFuture = JobService().getJobs();
     });
   }
 
-  // Filter data dari API
   List<JobCategory> filterJobs(List<JobCategory> jobs) {
     return jobs.where((job) {
       final title = job.jobName.toLowerCase();
@@ -99,18 +97,15 @@ class _JobPageState extends State<JobPage> {
           ],
         ),
       ),
-      // FLOATING ACTION BUTTON untuk Create Job
+
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          // Navigate ke CreateJobPage dan tunggu hasilnya
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => const CreateJobPage(),
             ),
           );
-          
-          // Jika berhasil create (result == true), refresh data
           if (result == true) {
             _refreshData();
           }
@@ -229,7 +224,6 @@ class _JobPageState extends State<JobPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Icon atau Image (opsional)
               Container(
                 width: 80,
                 height: 80,
@@ -274,7 +268,6 @@ class _JobPageState extends State<JobPage> {
 
               const SizedBox(height: 8),
 
-              // Category Badge
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
@@ -383,7 +376,7 @@ class JobCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String imgUrl = imagePath.isEmpty
-        ? "" // kalau tidak ada gambar
+        ? "" 
         : "http://10.0.2.2:4000/uploads/$imagePath"; 
 
     return GestureDetector(
