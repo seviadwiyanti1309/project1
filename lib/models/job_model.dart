@@ -4,7 +4,7 @@ class JobCategory {
   final String description;
   final String category;
   final int applicant;
-  final List<String> image; 
+  final List<String> image;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -26,11 +26,20 @@ class JobCategory {
       description: json['description'] ?? '',
       category: json['category'] ?? '',
       applicant: json['applicant'] ?? 0,
-      image: json['image'] != null 
-          ? List<String>.from(json['image']) 
-          : [],
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+
+      image: json['image'] != null
+          ? List<String>.from(json['image'])
+          : (json['images'] != null
+              ? List<String>.from(json['images'])
+              : []),
+
+      createdAt: json['createdAt'] != null && json['createdAt'] != ""
+          ? DateTime.tryParse(json['createdAt']) ?? DateTime.now()
+          : DateTime.now(),
+
+      updatedAt: json['updatedAt'] != null && json['updatedAt'] != ""
+          ? DateTime.tryParse(json['updatedAt']) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
 
@@ -40,9 +49,9 @@ class JobCategory {
       "description": description,
       "category": category,
       "applicant": applicant,
-      "image": image, 
+      "image": image,
     };
   }
-  
+
   String get firstImage => image.isNotEmpty ? image.first : '';
 }

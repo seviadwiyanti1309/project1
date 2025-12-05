@@ -145,7 +145,6 @@ class _CreateJobPageState extends State<CreateJobPage> {
       setState(() => _isLoading = true);
 
       try {
-        // Pakai nama file sebagai dummy storage image URL
         final imageNames =
             _imageFiles.map((file) => file.path.split('/').last).toList();
 
@@ -230,10 +229,6 @@ class _CreateJobPageState extends State<CreateJobPage> {
       ),
     );
   }
-
-  // ---------------- UI Components ---------------- //
-
-
 
   Widget _buildLabel(String text) {
     return Text(

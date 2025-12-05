@@ -3,6 +3,8 @@ import 'package:project1/models/job_model.dart';
 import 'package:project1/services/job_service.dart';
 import 'package:project1/create_job_page.dart';
 
+import 'edit_job_page.dart';
+
 class JobPage extends StatefulWidget {
   const JobPage({super.key});
 
@@ -207,155 +209,121 @@ class _JobPageState extends State<JobPage> {
     );
   }
 
-  void _showJobDetails(dynamic job) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
+  void _showJobDetails(JobCategory job) {
+  showDialog(
+    context: context,
+    builder: (context) => Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(20),
         ),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF7D4CC2).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: job.image.isNotEmpty
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.network(
-                          "http://10.0.2.2:4000/${job.image[0]}",
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) {
-                            return const Icon(
-                              Icons.work_outline,
-                              size: 40,
-                              color: Color(0xFF7D4CC2),
-                            );
-                          },
-                        ),
-                      )
-                    : const Icon(
-                        Icons.work_outline,
-                        size: 40,
-                        color: Color(0xFF7D4CC2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              job.jobName,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(job.description),
+            const SizedBox(height: 20),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // EDIT BUTTON
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(context);
+
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditJobPage(job: job),
                       ),
-              ),
+                    );
 
-              const SizedBox(height: 20),
-
-              // Job Title
-              Text(
-                job.jobName,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF7D4CC2).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  job.category,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFF7D4CC2),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // Divider
-              Container(
-                height: 1,
-                color: Colors.grey.shade200,
-              ),
-
-              const SizedBox(height: 20),
-
-              // Description Label
-              const Text(
-                "Description",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              // Description Text
-              Container(
-                constraints: const BoxConstraints(maxHeight: 200),
-                child: SingleChildScrollView(
-                  child: Text(
-                    job.description,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.6,
-                      color: Colors.grey.shade700,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Close Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
+                    if (result == true) {
+                      _refreshData();
+                      _showSuccessAlert();
+                    }
+                  },
+                  icon: const Icon(Icons.edit, color: Colors.white),
+                  label: const Text("Edit", style: TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7D4CC2),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    "Close",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    backgroundColor: Colors.blue,
                   ),
                 ),
-              ),
-            ],
-          ),
+
+                // DELETE BUTTON
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    Navigator.pop(context);
+
+                    final confirm = await showDialog(
+                      context: context,
+                      builder: (_) => AlertDialog(
+                        title: const Text("Hapus Job?"),
+                        content: Text("Yakin ingin menghapus '${job.jobName}'?"),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text("Batal"),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text("Hapus", style: TextStyle(color: Colors.red)),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirm == true) {
+                      await JobService().deleteJob(job.id);
+                      _refreshData();
+                    }
+                  },
+                  icon: const Icon(Icons.delete, color: Colors.white),
+                  label: const Text("Delete", style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                ),
+              ],
+            )
+          ],
         ),
       ),
-    );
+    ),
+  );
+}
+
+  void _showSuccessAlert() {
+    showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Berhasil"),
+      content: const Text("Job berhasil diupdate!"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text("OK"),
+        ),
+      ],
+    ),
+  );
   }
 }
+
 
 class JobCard extends StatelessWidget {
   final String title;
