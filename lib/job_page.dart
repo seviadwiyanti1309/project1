@@ -209,10 +209,10 @@ class _JobPageState extends State<JobPage> {
     );
   }
 
-  void _showJobDetails(JobCategory job) {
+void _showJobDetails(JobCategory job) {
   showDialog(
     context: context,
-    builder: (context) => Dialog(
+    builder: (dialogContext) => Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
@@ -240,10 +240,9 @@ class _JobPageState extends State<JobPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // EDIT BUTTON
                 ElevatedButton.icon(
                   onPressed: () async {
-                    Navigator.pop(context);
+                    Navigator.pop(dialogContext);
 
                     final result = await Navigator.push(
                       context,
@@ -252,7 +251,7 @@ class _JobPageState extends State<JobPage> {
                       ),
                     );
 
-                    if (result == true) {
+                    if (result == true && mounted) {
                       _refreshData();
                       _showSuccessAlert();
                     }
@@ -264,38 +263,39 @@ class _JobPageState extends State<JobPage> {
                   ),
                 ),
 
-                // DELETE BUTTON
                 ElevatedButton.icon(
                   onPressed: () async {
-                    Navigator.pop(context);
-
-                    final confirm = await showDialog(
-                      context: context,
-                      builder: (_) => AlertDialog(
+                    final scaffoldContext = context;
+                    Navigator.pop(dialogContext);
+                    final confirm = await showDialog<bool>(
+                      context: scaffoldContext,
+                      builder: (ctx) => AlertDialog(
                         title: const Text("Hapus Job?"),
                         content: Text("Yakin ingin menghapus '${job.jobName}'?"),
                         actions: [
                           TextButton(
-                            onPressed: () => Navigator.pop(context, false),
+                            onPressed: () => Navigator.pop(ctx, false),
                             child: const Text("Batal"),
                           ),
                           TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: const Text("Hapus", style: TextStyle(color: Colors.red)),
+                            onPressed: () => Navigator.pop(ctx, true),
+                            child: const Text(
+                              "Hapus",
+                              style: TextStyle(color: Colors.red)
+                            ),
                           ),
                         ],
                       ),
                     );
 
                     if (confirm == true) {
-                      await JobService().deleteJob(job.id);
-                      _refreshData();
+                      _deleteJobWithLoading(scaffoldContext, job);
                     }
                   },
                   icon: const Icon(Icons.delete, color: Colors.white),
                   label: const Text("Delete", style: TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: Colors.red
                   ),
                 ),
               ],
@@ -305,6 +305,92 @@ class _JobPageState extends State<JobPage> {
       ),
     ),
   );
+}
+
+void _deleteJobWithLoading(BuildContext ctx, JobCategory job) async {
+  showDialog(
+    context: ctx,
+    barrierDismissible: false,
+    builder: (loadingCtx) => WillPopScope(
+      onWillPop: () async => false,
+      child: const Dialog(
+        backgroundColor: Colors.transparent,
+        child: Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7D4CC2)),
+                  ),
+                  SizedBox(height: 16),
+                  Text("Menghapus job..."),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+
+  try {
+    bool result = await JobService().deleteJob(job.id);
+    
+    if (mounted) {
+      Navigator.of(ctx).pop();
+    }
+    if (mounted) {
+      setState(() {
+        jobFuture = JobService().getJobs();
+      });
+      
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text("'${job.jobName}' berhasil dihapus"),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+
+  } catch (e) {
+    print("❌ ERROR: $e");
+
+    if (mounted) {
+      Navigator.of(ctx).pop();
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text("Gagal menghapus: ${e.toString()}"),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
 }
 
   void _showSuccessAlert() {
