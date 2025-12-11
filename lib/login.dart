@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:project1/main.dart';
-import 'home_page.dart'; // ganti dengan halaman tujuanmu
+import 'package:project1/page_user/user_home.dart';
+import 'home_page.dart'; 
+import 'page_user/user_home.dart'; 
 import 'services/auth_services.dart';
+import 'models/user_model.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,6 +17,7 @@ class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -22,21 +26,18 @@ class _LoginPageState extends State<LoginPage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // ====== PURPLE SECTION (TEXT OVERLAP WITH ILLUSTRATION) ======
               SizedBox(
                 height: 420,
                 child: Stack(
                   children: [
-                    // ILLUSTRATION (Background - FULL WIDTH, lebih ke atas)
                     Positioned.fill(
                       child: Padding(
                         padding: const EdgeInsets.only(top: 0, bottom: 0),
                         child: Image.asset(
                           "assets/images/login_illustration.png",
-                          fit: BoxFit.cover, // Ubah ke cover agar mengisi penuh
+                          fit: BoxFit.cover,
                           alignment: Alignment.center,
                           errorBuilder: (context, error, stackTrace) {
-                            // Placeholder jika gambar tidak ditemukan
                             return Container(
                               color: Colors.transparent,
                               child: const Center(
@@ -52,7 +53,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     
-                    // TEXT WELCOME (Foreground - di atas gambar)
                     Positioned(
                       top: 40,
                       left: 32,
@@ -85,7 +85,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
 
-              // ====== WHITE CARD FORM ======
               Container(
                 width: double.infinity,
                 constraints: BoxConstraints(
@@ -104,6 +103,7 @@ class _LoginPageState extends State<LoginPage> {
                     // Email
                     TextField(
                       controller: emailController,
+                      enabled: !_isLoading,
                       style: const TextStyle(fontSize: 15),
                       decoration: const InputDecoration(
                         labelText: "Email/Username",
@@ -125,6 +125,7 @@ class _LoginPageState extends State<LoginPage> {
                     // Password
                     TextField(
                       controller: passwordController,
+                      enabled: !_isLoading,
                       obscureText: !_isPasswordVisible,
                       style: const TextStyle(fontSize: 15),
                       decoration: InputDecoration(
@@ -163,48 +164,32 @@ class _LoginPageState extends State<LoginPage> {
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: () async {
-                          final email = emailController.text.trim();
-                          final password = passwordController.text.trim();
-
-                          if (email.isEmpty || password.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Email dan password wajib diisi"))
-                            );
-                            return;
-                          }
-
-                          // panggil service
-                          final result = await AuthServices().login(email, password);
-
-                          if (result["success"]) {
-                            // jika login berhasil pindah ke home
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const MainLayout()),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(result["message"]))
-                            );
-                          }
-                        },
-
+                        onPressed: _isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF2C2C2C),
+                          disabledBackgroundColor: Colors.grey,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(26),
                           ),
                         ),
-                        child: const Text(
-                          "Log In",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                "Log In",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
 
@@ -223,7 +208,7 @@ class _LoginPageState extends State<LoginPage> {
 
                     const SizedBox(height: 24),
 
-                    // Social Icons (menggunakan Icon bawaan Flutter)
+                    // Social Icons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -268,7 +253,63 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // Widget Social Icon dengan Icon bawaan
+  // Handle Login dengan Role-based Navigation
+  Future<void> _handleLogin() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showSnackBar("Email dan password wajib diisi", isError: true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await AuthServices().login(email, password);
+
+      setState(() => _isLoading = false);
+
+      if (result["success"]) {
+        final user = result["user"] as UserModel;
+        
+        _showSnackBar("Login berhasil! Selamat datang ${user.name}", isError: false);
+
+        // Navigate berdasarkan role
+        if (user.isHR()) {
+          // Untuk HR -> ke HR Dashboard
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainLayout()),
+          );
+        } else {
+          // Untuk User -> ke Home Page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HRDashboard()),
+          );
+        }
+      } else {
+        _showSnackBar(result["message"], isError: true);
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showSnackBar("Error: ${e.toString()}", isError: true);
+    }
+  }
+
+  // Helper untuk SnackBar
+  void _showSnackBar(String message, {required bool isError}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  // Widget Social Icon
   Widget socialIconWidget({
     IconData? icon,
     Color? color,
@@ -277,7 +318,6 @@ class _LoginPageState extends State<LoginPage> {
   }) {
     return InkWell(
       onTap: () {
-        // Aksi ketika icon diklik
       },
       borderRadius: BorderRadius.circular(50),
       child: Container(
@@ -296,5 +336,12 @@ class _LoginPageState extends State<LoginPage> {
             ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 }

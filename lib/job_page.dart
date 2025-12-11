@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:project1/models/job_model.dart';
 import 'package:project1/services/job_service.dart';
+import 'package:project1/services/auth_services.dart';
 import 'package:project1/create_job_page.dart';
-
 import 'edit_job_page.dart';
 
 class JobPage extends StatefulWidget {
@@ -16,11 +16,45 @@ class _JobPageState extends State<JobPage> {
   String searchQuery = '';
   String selectedCategory = 'All';
   late Future<List<JobCategory>> jobFuture;
+  bool isHR = false;
+  bool isLoadingRole = true;
+  String userName = "";
 
   @override
   void initState() {
     super.initState();
-    jobFuture = JobService().getJobs();
+    _initPage();
+  }
+
+  // Initialize page data
+  Future<void> _initPage() async {
+    await _checkUserRole();
+    _refreshData();
+  }
+
+  // Check if user is HR
+  Future<void> _checkUserRole() async {
+    try {
+      final authService = AuthServices();
+      final hrStatus = await authService.isHR();
+      final user = await authService.getCurrentUser();
+      
+      print("👤 User role check:");
+      print("   - Is HR: $hrStatus");
+      print("   - User: ${user?.name}");
+      print("   - Role: ${user?.role}");
+      
+      setState(() {
+        isHR = hrStatus;
+        userName = user?.name ?? "User";
+        isLoadingRole = false;
+      });
+    } catch (e) {
+      print("❌ Error checking role: $e");
+      setState(() {
+        isLoadingRole = false;
+      });
+    }
   }
 
   void _refreshData() {
@@ -44,6 +78,16 @@ class _JobPageState extends State<JobPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoadingRole) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFF7D4CC2),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -62,36 +106,126 @@ class _JobPageState extends State<JobPage> {
                     );
                   }
 
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline, 
+                              size: 60, 
+                              color: Colors.red
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              "Error",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red.shade700,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              "${snapshot.error}",
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: _refreshData,
+                              icon: const Icon(Icons.refresh),
+                              label: const Text("Coba Lagi"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF7D4CC2),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(
-                      child: Text("No jobs available"),
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.work_off, 
+                            size: 80, 
+                            color: Colors.grey.shade400
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            "Belum ada job tersedia",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          if (isHR) ...[
+                            const SizedBox(height: 8),
+                            const Text(
+                              "Buat job pertama Anda!",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     );
                   }
 
                   final filtered = filterJobs(snapshot.data!);
 
                   if (filtered.isEmpty) {
-                    return const Center(
-                      child: Text("No jobs found"),
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.search_off, 
+                            size: 80, 
+                            color: Colors.grey.shade400
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            "Tidak ada job yang sesuai",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   }
 
-                  return ListView.separated(
-                    padding: const EdgeInsets.all(20),
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 15),
-                    itemBuilder: (context, index) {
-                      final job = filtered[index];
-                      return JobCard(
-                        title: job.jobName,
-                        description: job.description,
-                        imagePath: job.image.isNotEmpty
-                            ? job.image[0]
-                            : '', // jika tidak ada gambar
-                        category: job.category,
-                        onTap: () => _showJobDetails(job),
-                      );
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      _refreshData();
+                      await jobFuture;
                     },
+                    color: const Color(0xFF7D4CC2),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: filtered.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 15),
+                      itemBuilder: (context, index) {
+                        final job = filtered[index];
+                        return JobCard(
+                          title: job.jobName,
+                          description: job.description,
+                          imagePath: job.image.isNotEmpty
+                              ? job.image[0]
+                              : '',
+                          category: job.category,
+                          onTap: () => _showJobDetails(job),
+                        );
+                      },
+                    ),
                   );
                 },
               ),
@@ -100,45 +234,105 @@ class _JobPageState extends State<JobPage> {
         ),
       ),
 
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CreateJobPage(),
+      // Only show FAB if user is HR
+      floatingActionButton: isHR 
+        ? FloatingActionButton.extended(
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CreateJobPage(),
+                ),
+              );
+              if (result == true) {
+                _refreshData();
+              }
+            },
+            backgroundColor: const Color.fromARGB(255, 193, 149, 254),
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text(
+              'Create Job',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
             ),
-          );
-          if (result == true) {
-            _refreshData();
-          }
-        },
-        backgroundColor: const Color.fromARGB(255, 193, 149, 254),
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Create Job',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-      ),
+          )
+        : null,
     );
   }
 
   Widget _buildHeader() {
-    return Padding(
+    return Container(
       padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
       child: Column(
         children: [
           const SizedBox(height: 10),
-          const Text(
-            "Job Categories",
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 5),
-          const Text(
-            "Find your job here",
-            style: TextStyle(color: Colors.grey),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Job Categories",
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Hello, $userName",
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              // Role badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isHR ? Colors.green : Colors.blue,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (isHR ? Colors.green : Colors.blue).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isHR ? Icons.admin_panel_settings : Icons.person,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      isHR ? "HR" : "User",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
 
@@ -177,9 +371,15 @@ class _JobPageState extends State<JobPage> {
               children: [
                 _buildCategoryChip('All'),
                 const SizedBox(width: 12),
-                _buildCategoryChip('Restaurant'),
-                _buildCategoryChip('Hukum'),
                 _buildCategoryChip('IT'),
+                const SizedBox(width: 12),
+                _buildCategoryChip('Restaurant'),
+                const SizedBox(width: 12),
+                _buildCategoryChip('Hukum'),
+                const SizedBox(width: 12),
+                _buildCategoryChip('Marketing'),
+                const SizedBox(width: 12),
+                _buildCategoryChip('Finance'),
               ],
             ),
           ),
@@ -224,82 +424,151 @@ void _showJobDetails(JobCategory job) {
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              job.jobName,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold
+            // Title
+            Center(
+              child: Text(
+                job.jobName,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 10),
-            Text(job.description),
-            const SizedBox(height: 20),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    Navigator.pop(dialogContext);
-
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditJobPage(job: job),
-                      ),
-                    );
-
-                    if (result == true && mounted) {
-                      _refreshData();
-                      _showSuccessAlert();
-                    }
-                  },
-                  icon: const Icon(Icons.edit, color: Colors.white),
-                  label: const Text("Edit", style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+            const SizedBox(height: 16),
+            
+            // Category badge
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF7D4CC2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  job.category,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
                 ),
-
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    final scaffoldContext = context;
-                    Navigator.pop(dialogContext);
-                    final confirm = await showDialog<bool>(
-                      context: scaffoldContext,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text("Hapus Job?"),
-                        content: Text("Yakin ingin menghapus '${job.jobName}'?"),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx, false),
-                            child: const Text("Batal"),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx, true),
-                            child: const Text(
-                              "Hapus",
-                              style: TextStyle(color: Colors.red)
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (confirm == true) {
-                      _deleteJobWithLoading(scaffoldContext, job);
-                    }
-                  },
-                  icon: const Icon(Icons.delete, color: Colors.white),
-                  label: const Text("Delete", style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Description
+            Text(
+              job.description,
+              style: const TextStyle(fontSize: 14),
+            ),
+            
+            const SizedBox(height: 12),
+            
+            // Applicants
+            Row(
+              children: [
+                const Icon(Icons.people, size: 16, color: Colors.grey),
+                const SizedBox(width: 6),
+                Text(
+                  "${job.applicant} Pelamar",
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 13,
                   ),
                 ),
               ],
-            )
+            ),
+            
+            const SizedBox(height: 20),
+
+            // Only show Edit and Delete buttons if user is HR
+            if (isHR)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        Navigator.pop(dialogContext);
+
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditJobPage(job: job),
+                          ),
+                        );
+
+                        if (result == true && mounted) {
+                          _refreshData();
+                          _showSuccessAlert("Job berhasil diupdate!");
+                        }
+                      },
+                      icon: const Icon(Icons.edit, color: Colors.white),
+                      label: const Text("Edit", style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final scaffoldContext = context;
+                        Navigator.pop(dialogContext);
+                        final confirm = await showDialog<bool>(
+                          context: scaffoldContext,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text("Hapus Job?"),
+                            content: Text("Yakin ingin menghapus '${job.jobName}'?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text("Batal"),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: const Text(
+                                  "Hapus",
+                                  style: TextStyle(color: Colors.red)
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirm == true) {
+                          _deleteJobWithLoading(scaffoldContext, job);
+                        }
+                      },
+                      icon: const Icon(Icons.delete, color: Colors.white),
+                      label: const Text("Delete", style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            else
+              // For regular users, show "Close" button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7D4CC2),
+                  ),
+                  child: const Text(
+                    "Close",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -337,15 +606,13 @@ void _deleteJobWithLoading(BuildContext ctx, JobCategory job) async {
   );
 
   try {
-    bool result = await JobService().deleteJob(job.id);
+    await JobService().deleteJob(job.id);
     
     if (mounted) {
       Navigator.of(ctx).pop();
     }
     if (mounted) {
-      setState(() {
-        jobFuture = JobService().getJobs();
-      });
+      _refreshData();
       
       ScaffoldMessenger.of(ctx).showSnackBar(
         SnackBar(
@@ -393,12 +660,12 @@ void _deleteJobWithLoading(BuildContext ctx, JobCategory job) async {
   }
 }
 
-  void _showSuccessAlert() {
+  void _showSuccessAlert(String message) {
     showDialog(
     context: context,
     builder: (_) => AlertDialog(
       title: const Text("Berhasil"),
-      content: const Text("Job berhasil diupdate!"),
+      content: Text(message),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
@@ -440,6 +707,13 @@ class JobCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF7D4CC2),
           borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF7D4CC2).withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
@@ -451,13 +725,29 @@ class JobCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(18),
               ),
               child: imgUrl.isEmpty
-                  ? const Icon(Icons.work_outline, size: 40)
-                  : Image.network(
-                      imgUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) {
-                        return const Icon(Icons.broken_image, size: 40);
-                      },
+                  ? const Icon(Icons.work_outline, size: 40, color: Color(0xFF7D4CC2))
+                  : ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: Image.network(
+                        imgUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFF7D4CC2),
+                            ),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) {
+                          return const Icon(
+                            Icons.broken_image, 
+                            size: 40,
+                            color: Color(0xFF7D4CC2),
+                          );
+                        },
+                      ),
                     ),
             ),
 

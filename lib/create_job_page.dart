@@ -159,7 +159,7 @@ class _CreateJobPageState extends State<CreateJobPage> {
           updatedAt: DateTime.now(),
         );
 
-        await _jobService.createJob(job, _imageFiles);
+        await _jobService.createJob(job, imageFiles: _imageFiles);
 
         if (mounted) {
           _showSnackBar('Job berhasil dibuat! 🎉', Colors.green);

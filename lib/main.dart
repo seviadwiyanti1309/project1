@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const LoginPage(), // ← gunakan layout utama
+      home: const LoginPage(), 
     );
   }
 }
@@ -39,7 +39,7 @@ class _MainLayoutState extends State<MainLayout> {
   // daftar halaman yang ingin ditampilkan
   final List<Widget> _pages = const [
     HomePage(),
-    JobPage(),     // nanti bisa ganti page lain
+    JobPage(),   
     InterviewPage(),
     DocumentPage(),
   ];
@@ -47,7 +47,7 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_selectedIndex], // tampilan berubah sesuai navbar
+      body: _pages[_selectedIndex], 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {
