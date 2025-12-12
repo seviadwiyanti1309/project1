@@ -20,9 +20,7 @@ class _DocumentPageState extends State<DocumentPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // ---------------------------------------------------
             // HEADER
-            // ---------------------------------------------------
             Container(
               width: double.infinity,
               padding: const EdgeInsets.only(
@@ -59,9 +57,7 @@ class _DocumentPageState extends State<DocumentPage> {
               ),
             ),
 
-            // ---------------------------------------------------
             // FORM
-            // ---------------------------------------------------
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -190,9 +186,7 @@ class _DocumentPageState extends State<DocumentPage> {
     );
   }
 
-  // ---------------------------------------------------
   // COMPONENTS
-  // ---------------------------------------------------
 
   Widget _label(String text) {
     return Padding(

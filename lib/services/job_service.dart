@@ -22,8 +22,8 @@ class JobService {
       },
     );
 
-    print('Status code: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    // print('Status code: ${response.statusCode}');
+    // print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = jsonDecode(response.body);
